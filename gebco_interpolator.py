@@ -5,33 +5,23 @@ from meshkernel import GeometryList
 
 GEBCO_DATAFILE="/home/inti/code/mosaic/gebco_data/GEBCO_2020.nc"
 
-data=netCDF4.Dataset(GEBCO_DATAFILE)
-
-Nlon=data["lon"].shape[0]
-Nlat=data["lat"].shape[0]
-
-dlon=360./Nlon
-dlat=180./Nlat
-
-lon0=data["lon"][0]
-lat0=data["lat"][0]
-
-elev=data["elevation"]
-
-assert dlon==dlat
+DATA=netCDF4.Dataset(GEBCO_DATAFILE)
 
 class gebco_interpolator:
     def __init__(self, resolution=None):
         # eventually resolution indicates resolution to which is averaged
         resolution_factor=1
         if resolution_factor==1:
-            self.elev=data["elevation"]
-            self.Nlon=Nlon
-            self.Nlat=Nlat
-            self.lon0=lon0
-            self.lat0=lat0
-            self.dlon=dlon
-            self.dlat=dlat
+            self.elev=DATA["elevation"][:,:] # flat indexing otherwise doesn't work
+            self.Nlon=DATA["lon"].shape[0]
+            self.Nlat=DATA["lat"].shape[0]
+            self.dlon=360./self.Nlon
+            self.dlat=180./self.Nlat
+            self.lon0=DATA["lon"][0]
+            self.lat0=DATA["lat"][0]
+            
+            assert self.dlon==self.dlat
+            
 
     def interpolate(self, lon,lat):
         """
@@ -63,7 +53,7 @@ class gebco_interpolator:
                    (1.-wx)*wy*self.elev[iy ,ix1] + \
                    wx*(1.-wy)*self.elev[iy1,ix ] + \
               (1.-wx)*(1.-wy)*self.elev[iy1,ix1]
-    
+        
         return result
     
     def interpolator(self, m):
@@ -72,6 +62,9 @@ class gebco_interpolator:
         y=mm.node_y
         values=self.interpolate(x,y)
         return GeometryList(x,y,values)
+
+    def __call__(self, m):
+        return self.interpolator(m)
   
 if __name__=="__main__":
     lon=numpy.array([-180+dlon/2+dlon/10])

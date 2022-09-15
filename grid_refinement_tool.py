@@ -48,7 +48,7 @@ def clone_export_dataset(filename, d, NetNode_x, NetNode_y, NetNode_z, NetLink, 
     #~ ds.createDimension("nNetElem", size=?)
     
     for name, variable in d.variables.items():
-      print(name, variable.dimensions)
+      #~ print(name, variable.dimensions)
       var=ds.createVariable(name, variable.datatype, variable.dimensions)
       for aname in variable.ncattrs():
         var.setncattr(aname, variable.getncattr(aname))
@@ -184,17 +184,21 @@ class GridRefinementTool:
 
 if __name__=="__main__":
   
-    #~ location=[(145.224609375+152.783203125)/2, (-22.8515625+ -15.0)/2 ]
-    #~ cutout_size=(152.783203125-145.224609375)
+    location=[(145.224609375+152.783203125)/2, (-22.8515625+ -15.0)/2 ]
+    cutout_size=(152.783203125-145.224609375)
 
-    location=[4.,52.]
-    cutout_size=14
+    #~ location=[4.,52.]
+    #~ cutout_size=14
 
     refinement_size=cutout_size-3.
-    refinement_level=0
+    refinement_level=3
+
+    from gebco_interpolator import gebco_interpolator
+    
+    gi=gebco_interpolator()
 
     #~ g=GridRefinementTool("test.nc")
-    g=GridRefinementTool("step11_global_net.nc")
+    g=GridRefinementTool("step11_global_net.nc", interpolator=gi)
 
     refinement=g.refine_around( location, cutout_size, refinement_size, refinement_level)
 
